@@ -3,6 +3,7 @@ local vicious = require("vicious")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
 local awful = require("awful")
+local naughty = require("naughty")
 
 module("widgets.cpu")
 
@@ -10,7 +11,7 @@ module("widgets.cpu")
 --tempwidget  = wibox.widget.textbox()
 --bashets.register(cfg_path .. "/Tcpu.sh",{widget=tempwidget,separator=" ", update_time=20})
 
-function new()
+function new(terminal)
   local cpu = {}
   cpu.icon = wibox.widget.imagebox()
   cpu.icon:set_image(beautiful.widget_cpu)
