@@ -1,4 +1,10 @@
 local awful = require("awful")
+local naughty = require("naughty")
+local os = require("os")
+local math = require("math")
+local string = require("string")
+
+local setmetatable = setmetatable
 
 module("widgets.cal")
 
@@ -6,19 +12,7 @@ module("widgets.cal")
 
 local cal = {}
 
-function new()
-	local self = awful.widget.textclock()
-	self.calendar = nil
-	self.offset = 0
-	self:buttons(awful.util.table.join(
-	  awful.button({ }, 1, function () self:showcalendar(666) end, nil, "Show current month"),
-	  awful.button({ }, 4, function () self:showcalendar(-1) end, nil, "Show previous month"),
-	  awful.button({ }, 5, function () self:showcalendar(1) end, nil, "Show next month")
-	))
-	return self
-end
-
-function cal:remove_calendar()
+local function remove_calendar(self)
         if self.calendar ~= nil then
             naughty.destroy(self.calendar)
             self.calendar = nil
@@ -26,9 +20,9 @@ function cal:remove_calendar()
         end
 end
 
-function cal:showcalendar(inc_offset)
+local function show_calendar(self,inc_offset)
         self.save_offset = self.offset
-        self:remove_calendar()
+        remove_calendar(self)
         if inc_offset == 666 then
                 self.offset = 0
         else
@@ -44,3 +38,17 @@ function cal:showcalendar(inc_offset)
                     timeout = 0, hover_timeout = 0.5, --height=130
         })
 end
+
+function new()
+	local self = setmetatable({}, cal)
+	self.widget = awful.widget.textclock()
+	self.calendar = nil
+	self.offset = 0
+	self.widget:buttons(awful.util.table.join(
+	  awful.button({ }, 1, function () show_calendar(self,666) end, nil, "Show current month"),
+	  awful.button({ }, 4, function () show_calendar(self,-1) end, nil, "Show previous month"),
+	  awful.button({ }, 5, function () show_calendar(self,1) end, nil, "Show next month")
+	))
+	return self
+end
+

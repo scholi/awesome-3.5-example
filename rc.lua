@@ -159,7 +159,7 @@ menubar.utils.terminal = terminal -- Set the terminal for applications that requ
 
 -- WIDGETS
 local widgets = require("widgets")
-mytextclock = widgets.cal.new()
+cal = widgets.cal.new()
 local fs = widgets.fs.new()
 fs:add("/home")
 fs:add("/")
@@ -266,7 +266,7 @@ for s = 1, screen.count() do
     right_layout:add(fs.icon)
     right_layout:add(fs.container)
 --    right_layout:add(volume_bar)
-    right_layout:add(mytextclock)
+    right_layout:add(cal.widget)
 --    right_layout:add(my_cal)
     right_layout:add(mylayoutbox[s])
 
