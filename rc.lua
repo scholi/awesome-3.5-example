@@ -152,255 +152,22 @@ mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesom
 
 mylauncher = awful.widget.launcher({ image = beautiful.awesome_icon,
                                      menu = mymainmenu })
--- TODO for future usage
---sp1 = wibox.widget.imagebox()
---sp1:set_image(beautiful.arr1)
---sp2 = wibox.widget.imagebox()
---sp2:set_image(beautiful.arr1)
---sp3 = wibox.widget.imagebox()
---sp3:set_image(beautiful.arr1)
-sp4 = wibox.widget.imagebox()
-sp4:set_image(beautiful.arr2)
-
 -- Menubar configuration
 menubar.utils.terminal = terminal -- Set the terminal for applications that require it
 -- }}}
 
--- {{{ Wibox
 
-local colors_stops =  { {beautiful.green , 0},
-                        {beautiful.orange, 0.75},
-                        {beautiful.red, 0.90}
-}
+-- WIDGETS
+local widgets = require("widgets")
+mytextclock = widgets.cal.new()
+local fs = widgets.fs.new()
+fs:add("/home")
+fs:add("/")
+cpu = widgets.cpu.new()
+mem = widgets.mem.new()
+net = widgets.net.new()
+vol = widgets.vol.new(terminal)
 
--- Create a Date/Calendar widget
-mytextclock = awful.widget.textclock()
-calendar = nil
-local offset = 0
-
-function remove_calendar()
-        if calendar ~= nil then
-            naughty.destroy(calendar)
-            calendar = nil
-            offset = 0
-        end
-end
-
-function showcalendar(inc_offset)
-        local save_offset = offset
-        remove_calendar()
-        if inc_offset == 666 then
-                offset = 0
-        else
-                offset = save_offset + inc_offset
-        end
-        local datespec = os.date("*t")
-        local date = datespec.year * 12 + datespec.month - 1 + offset
-        date = (date % 12 + 1) .. " " .. math.floor(date / 12)
-        cal = awful.util.pread("cal -m " .. date)
-	if offset == 0 then cal = string.gsub(cal, "([\n ])(" .. datespec.day .. " )", "%1<span color='orange' font_weight='bold'>%2</span>") end
-        calendar = naughty.notify({
-                    text = '<span font-family="monospace">' .. cal .. '</span>',
-                    timeout = 0, hover_timeout = 0.5, --height=130
-        })
-end
-
-mytextclock:buttons(awful.util.table.join(
-  awful.button({ }, 1, function () showcalendar(666) end, nil, "Show current month"),
-  awful.button({ }, 4, function () showcalendar(-1) end, nil, "Show previous month"),
-  awful.button({ }, 5, function () showcalendar(1) end, nil, "Show next month")
-))
-
--- FS Widget
-fsicon = wibox.widget.imagebox()
-fsicon:set_image(beautiful.widget_hdd)
-
-fshome = blingbling.value_text_box.new({height=18, width=40, v_margin=2})
-fshome:set_values_text_color(colors_stops)
-fshome:set_rounded_size(0.4)
-fshome:set_background_color("#00000066")
-fshome:set_label("/home $percent %")
-vicious.register(fshome,vicious.widgets.fs,'${/home used_p}',120)
-
-fsroot = blingbling.value_text_box.new({height=18, width=40, v_margin=2})
-fsroot:set_values_text_color(colors_stops)
-fsroot:set_rounded_size(0.4)
-fsroot:set_background_color("#00000066")
-fsroot:set_label("/ $percent %")
-vicious.register(fsroot,vicious.widgets.fs,'${/ used_p}',120)
-
--- CPU widget
---tempwidget  = wibox.widget.textbox()
---bashets.register(cfg_path .. "/Tcpu.sh",{widget=tempwidget,separator=" ", update_time=20})
-cpu_icon = wibox.widget.imagebox()
-cpu_icon:set_image(beautiful.widget_cpu)
-cpu_icon:buttons(awful.button ({}, 1, function()
-	if cpu_graph.visible
-	then
-		cpucontainer:set_widget(nil)
-	else
-		cpucontainer:set_widget(cpu_graph)
-	end
-	cpu_graph.visible = not cpu_graph.visible
-end))
-
-cpu_graph = blingbling.line_graph({ height = 18, width = 100, graph_color=beautiful.graph_color, graph_line_color=beautiful.graph_line_color  })
-vicious.register(cpu_graph, vicious.widgets.cpu,'$1',2)
-cpu_graph.visible=false
-cpucontainer = wibox.layout.margin()
-
-mycore1=blingbling.progress_graph.new({height=18, width=6,h_margin=1})
-vicious.register(mycore1, vicious.widgets.cpu, '$2',1)
-mycore2=blingbling.progress_graph.new({height=18, width=6,h_margin=1})
-vicious.register(mycore2, vicious.widgets.cpu, '$3',1)
-mycore1:buttons(awful.button ({}, 1, function() awful.util.spawn(terminal .. " -e htop") end))
-mycore2:buttons(awful.button ({}, 1, function() awful.util.spawn(terminal .. " -e htop") end))
-
--- MEM widget
-mem_icon = wibox.widget.imagebox()
-mem_icon:set_image(beautiful.widget_mem)
-memwidget = blingbling.value_text_box.new({height=18, width=10, v_margin=2})
-memwidget:set_label("$percent %")
-mem_graph = blingbling.line_graph({ height = 18, width = 100, graph_color=beautiful.graph_color, graph_line_color=beautiful.graph_line_color  })
-mem_graph.visible=false
-vicious.register(mem_graph, vicious.widgets.mem, '$1', 2)
-vicious.register(memwidget, vicious.widgets.mem, '$1', 2)
-memcontainer = wibox.layout.margin(memwidget)
-mem_icon:buttons(awful.button ({}, 1, function()
-	mem_graph.visible = not mem_graph.visible
-	if mem_graph.visible
-	then
-		memcontainer:set_widget(mem_graph)
-	else
-		memcontainer:set_widget(memwidget)
-	end
-end))
-
--- Net widget
-vicious.cache(vicious.widgets.net)
-netup_icon = wibox.widget.imagebox()
-netup_icon:set_image(beautiful.widget_netup)
-netdown_icon = wibox.widget.imagebox()
-netdown_icon:set_image(beautiful.widget_netdown)
-netup = wibox.widget.textbox()
-netdown = wibox.widget.textbox()
-netup.mode=0
-netdown.mode=0
-vicious.register(netdown, vicious.widgets.net, function (widget, args)
-	if netdown.mode == 0
-	then
-		return '<span color="#ff8800">' .. args['{eth0 down_kb}'] .. 'kb/s</span>'
-	else
-		return '<span color="#ffff00">' .. args['{eth0 rx_mb}'] .. 'Mb</span>'
-	end
-end,5)
-vicious.register(netup, vicious.widgets.net, function (widget, args)
-	if netup.mode == 0
-	then
-		return '<span color="#55ff55">' .. args['{eth0 up_kb}'] .. 'kb/s</span>'
-	else
-		return '<span color="#ff00ff">' .. args['{eth0 tx_mb}'] .. 'Mb</span>'
-	end
-end,5)
-
-
-netup_icon:buttons (awful.button ({}, 1, function()
-	netup.mode = 1 - netup.mode
-	vicious.force ({ netup })
-	end)
-)
-netdown_icon:buttons (awful.button ({}, 1, function()
-	netdown.mode = 1 - netdown.mode
-	vicious.force ({ netdown })
-	end)
-)
-netup:buttons (awful.button ({}, 1, function()
-	netup.mode = 1 - netup.mode
-	vicious.force ({ netup })
-	end)
-)
-netdown:buttons (awful.button ({}, 1, function()
-	netdown.mode = 1 - netdown.mode
-	vicious.force ({ netdown })
-	end)
-)
-
--- Volume widget
-vol_icon = wibox.widget.imagebox()
-vol_icon:set_image(beautiful.widget_vol)
-vol_icon:buttons (awful.util.table.join (
-	awful.button ({}, 1, function()
-		if volwidget.visible
-		then
-			volcontainer:set_widget(nil)
-		else
-			volcontainer:set_widget(volwidget)
-		end
-		volwidget.visible = not volwidget.visible
-	end),
-	awful.button ({}, 3, function()
-		awful.util.spawn ("amixer sset Master toggle")
-		vicious.force ({ volwidget })
-	end),
-	awful.button ({}, 4, function()
-		awful.util.spawn ("amixer sset Master 5+")
-		vicious.force ({ volwidget })
-	end),
-	awful.button ({}, 5, function()
-		awful.util.spawn ("amixer sset Master 5-")
-		vicious.force ({ volwidget })
-	end)
-))
-volwidget = blingbling.progress_graph({ height = 18, width=10, graph_color=beautiful.graph_color })
-volwidget.visible=false
-volcontainer = wibox.layout.margin() --volwidget)
-volwidget:set_graph_line_color("#555555")
-volwidget.mixer = terminal .. " -e alsamixer"
-vicious.register (volwidget, vicious.widgets.volume, function (widget, args)
-	volwidget._current_level = args[1]
-	if args[2] == "♩"
-	then
-		volwidget._muted = true
-		volwidget:set_graph_color(beautiful.color_muted)
-		vol_icon:set_image(beautiful.vol_off)
-		return 100
-	end
-	volwidget._muted = false
-	volwidget:set_graph_color(beautiful.graph_color)
-	if args[1]>75
-	then
-		vol_icon:set_image(beautiful.vol3)
-	elseif args[1]>50
-	then
-		vol_icon:set_image(beautiful.vol2)
-	elseif args[1]>25
-	then
-		vol_icon:set_image(beautiful.vol1)
-	else
-		vol_icon:set_image(beautiful.vol0)
-	end	
-	return args[1]
-	end, 5, "Master") -- relatively high update time, use of keys/mouse will force update
-
-volwidget:buttons (awful.util.table.join (
-	awful.button ({}, 1, function()
-		awful.util.spawn (volwidget.mixer)
-	end),
-	awful.button ({}, 3, function()
-		awful.util.spawn ("amixer sset Master toggle")
-		vicious.force ({ volwidget })
-	end),
-	awful.button ({}, 4, function()
-		awful.util.spawn ("amixer sset Master 5+")
-		vicious.force ({ volwidget })
-	end),
-	awful.button ({}, 5, function()
-		awful.util.spawn ("amixer sset Master 5-")
-		vicious.force ({ volwidget })
-	end)
-))
-
---bashets.start()
 
 -- Create a wibox for each screen and add it
 mywibox = {}
@@ -479,28 +246,26 @@ for s = 1, screen.count() do
 --    left_layout:add(sp1)
 --    left_layout:add(sp2)
 --    left_layout:add(sp3)
-   left_layout:add(sp4)
     left_layout:add(mypromptbox[s])
 
     -- Widgets that are aligned to the right
     local right_layout = wibox.layout.fixed.horizontal()
     if s == 1 then right_layout:add(wibox.widget.systray()) end
-    right_layout:add(cpu_icon)
-    right_layout:add(mycore1)
-    right_layout:add(mycore2)
---    right_layout:add(tempwidget)
-    right_layout:add(cpucontainer)
-    right_layout:add(mem_icon)
-    right_layout:add(memcontainer)
-    right_layout:add(netup_icon)
-    right_layout:add(netup)
-    right_layout:add(netdown_icon)
-    right_layout:add(netdown)
-    right_layout:add(vol_icon)
-    right_layout:add(volcontainer)
-    right_layout:add(fsicon)
-    right_layout:add(fsroot)
-    right_layout:add(fshome)
+    right_layout:add(cpu.icon)
+    right_layout:add(cpu.core1)
+    right_layout:add(cpu.core2)
+    right_layout:add(cpu.container)
+    right_layout:add(mem.icon)
+    right_layout:add(mem.container)
+    right_layout:add(net.up_icon)
+    right_layout:add(net.up)
+    right_layout:add(net.down_icon)
+    right_layout:add(net.down)
+    right_layout:add(vol.icon)
+    right_layout:add(vol.container)
+    right_layout:add(fs.icon)
+    right_layout:add(fs.X[2])
+    right_layout:add(fs.X[1])
 --    right_layout:add(volume_bar)
     right_layout:add(mytextclock)
 --    right_layout:add(my_cal)

@@ -128,5 +128,10 @@ theme.vol1      = theme_path .. "/icons2/vol1.png"
 theme.vol2      = theme_path .. "/icons2/vol2.png"
 theme.vol3      = theme_path .. "/icons2/vol3.png"
 
+theme.colors_stops =  { {theme.green , 0},
+                        {theme.orange, 0.75},
+                        {theme.red, 0.90}
+}
+
 return theme
 -- vim: filetype=lua:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:textwidth=80
