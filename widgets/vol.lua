@@ -7,20 +7,26 @@ local setmetatable = setmetatable
 
 module("widgets.vol")
 
+local vol = { }
+vol.__index = vol
+
 -- Volume widget
 function new(terminal)
-	local vol=setmetatable({},vol)
-	vol.icon = wibox.widget.imagebox()
-	vol.icon:set_image(beautiful.widget_vol)
-	vol.icon:buttons (awful.util.table.join (
+	local self=setmetatable({},vol)
+	self.icon = wibox.widget.imagebox()
+	self.icon:set_image(beautiful.widget_vol)
+	self.icon:buttons (awful.util.table.join (
 		awful.button ({}, 1, function()
-			if vol.widget.visible
+			if self.visible
 			then
-				vol.container:set_widget(nil)
+				self.container:reset()
 			else
-				vol.container:set_widget(vol.widget)
+				for i = 1,#(self.widget)
+				do
+				  self.container:add(self.widget[i])
+				end
 			end
-			vol.widget.visible = not vol.widget.visible
+			self.visible = not self.visible
 		end),
 		awful.button ({}, 3, function()
 			awful.util.spawn ("amixer sset Master toggle")
@@ -35,54 +41,66 @@ function new(terminal)
 			vicious.force ({ vol.widget })
 		end)
 	))
-	vol.widget = blingbling.progress_graph({ height = 18, width=10, graph_color=beautiful.graph_color })
-	vol.widget.visible=false
-	vol.container = wibox.layout.margin() --volwidget)
-	vol.widget:set_graph_line_color("#555555")
-	vol.widget.mixer =  terminal .. " -e alsamixer"
-	vicious.register (vol.widget, vicious.widgets.volume, function (widget, args)
-		vol.widget._current_level = args[1]
+	vol.widget = {}
+	vol.visible=false
+	vol.container = wibox.layout.fixed.horizontal()
+	vol.terminal=terminal
+	self.mixer =  terminal .. " -e alsamixer"
+	return self
+end
+
+function vol:add(channel)
+	local i = #(self.widget) + 1
+	self.widget[i] = blingbling.progress_graph({ height = 18, width=10, graph_color=beautiful.graph_color })
+	self.widget[i]:set_graph_line_color("#555555")
+	self.widget[i].channel=channel
+	vicious.register (self.widget[i], vicious.widgets.volume, function (widget, args)
+		self.widget[i]._current_level = args[1]
 		if args[2] == "♩"
 		then
-			vol.widget._muted = true
-			vol.widget:set_graph_color(beautiful.color_muted)
-			vol.icon:set_image(beautiful.vol_off)
+			self.widget[i]._muted = true
+			self.widget[i]:set_graph_color(beautiful.color_muted)
+			if self.widget[i].channel == "Master" then self.icon:set_image(beautiful.vol_off) end
 			return 100
 		end
-		vol.widget._muted = false
-		vol.widget:set_graph_color(beautiful.graph_color)
-		if args[1]>75
+		self.widget[i]._muted = false
+		self.widget[i]:set_graph_color(beautiful.graph_color)
+		if self.widget[i].channel == "Master"
 		then
-			vol.icon:set_image(beautiful.vol3)
-		elseif args[1]>50
-		then
-			vol.icon:set_image(beautiful.vol2)
-		elseif args[1]>25
-		then
-			vol.icon:set_image(beautiful.vol1)
-		else
-			vol.icon:set_image(beautiful.vol0)
-		end	
+			if args[1]>75
+			then
+				self.icon:set_image(beautiful.vol3)
+			elseif args[1]>50
+			then
+				self.icon:set_image(beautiful.vol2)
+			elseif args[1]>25
+			then
+				self.icon:set_image(beautiful.vol1)
+			else
+				self.icon:set_image(beautiful.vol0)
+			end
+		end
 		return args[1]
-		end, 5, "Master") -- relatively high update time, use of keys/mouse will force update
+		end, 5, channel) -- relatively high update time, use of keys/mouse will force update
 
-	vol.widget:buttons (awful.util.table.join (
+	self.widget[i]:buttons (awful.util.table.join (
 		awful.button ({}, 1, function()
-			awful.util.spawn (vol.widget.mixer)
+			awful.util.spawn (self.mixer)
 		end),
 		awful.button ({}, 3, function()
-			awful.util.spawn ("amixer sset Master toggle")
-			vicious.force ({ vol.widget })
+			awful.util.spawn ("amixer sset " .. channel .. " toggle")
+			vicious.force ({ self.widget[i] })
 		end),
 		awful.button ({}, 4, function()
-			awful.util.spawn ("amixer sset Master 5+")
-			vicious.force ({ vol.widget })
+			awful.util.spawn ("amixer sset " .. channel .. " 5+")
+			vicious.force ({ self.widget[i] })
 		end),
 		awful.button ({}, 5, function()
-			awful.util.spawn ("amixer sset Master 5-")
-			vicious.force ({ vol.widget })
+			awful.util.spawn ("amixer sset " .. channel .. " 5-")
+			vicious.force ({ self.widget[i] })
 		end)
 	))
-
-	return vol
+	if self.visible then
+		self.container:add(self.widget[i])
+	end
 end

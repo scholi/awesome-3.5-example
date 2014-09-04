@@ -10,9 +10,11 @@ local beautiful = require("beautiful")
 -- Notification library
 local naughty = require("naughty")
 local menubar = require("menubar")
-local blingbling = require("blingbling")
-local vicious = require("vicious")
-local bashets = require("bashets")
+--local blingbling = require("blingbling") -- used only for widgets
+--local vicious = require("vicious") -- used only for widgets
+--local bashets = require("bashets") -- used only to display temp. of CPU, but not displayed now
+local revelation = require("revelation")
+
 
 -- PATHES
 local cfg_path = awful.util.getdir("config")
@@ -49,6 +51,7 @@ env = "GTK_IM_MODULE=xim QT_IM_MODULE=xim _JAVA_AWT_WM_NONREPARENTING=1"
 mytheme=awful.util.pread("echo -n $(cat " .. cfg_path .. "/mytheme 2>/dev/null || echo scholi)")
 local theme_path = cfg_path .. "/themes/" .. mytheme .. "/theme.lua"
 beautiful.init(theme_path)
+revelation.init()
 
 --beautiful.init(os.getenv("HOME") .. "/.config/awesome/themes/japanese2/theme.lua")
 
@@ -167,6 +170,8 @@ cpu = widgets.cpu.new(terminal)
 mem = widgets.mem.new()
 net = widgets.net.new()
 vol = widgets.vol.new(terminal)
+vol:add("Master")
+vol:add("Front")
 
 
 -- Create a wibox for each screen and add it
@@ -315,6 +320,7 @@ globalkeys = awful.util.table.join(
     -- System cmd
     awful.key({ modkey, "Control" }, "Escape", function() awful.util.spawn("systemctl poweroff") end),
     awful.key({ modkey, "Control" }, "l", function() awful.util.spawn("xscreensaver-command -lock") end),
+    awful.key({ modkey,           }, "e", revelation),
 
     -- Layout manipulation
     awful.key({ modkey, "Shift"   }, "j", function () awful.client.swap.byidx(  1)    end),
@@ -365,7 +371,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey }, "p", function() menubar.show() end),
     awful.key({ modkey }, "y", function () run_or_raise("google-chrome", { name= "Google Chrome" }) end),
     awful.key({ modkey }, "c", function () run_or_raise("pcmanfm", { class= "Pcmanfm" }) end),
-    awful.key({ modkey }, "e", function () run_or_raise("eaglemode", { class= "EagleMode" }) end),
+    awful.key({ modkey, "Shift" }, "e", function () run_or_raise("eaglemode", { class= "EagleMode" }) end),
     awful.key({ modkey }, "g", function () run_or_raise("google-chrome --app='http://mail.google.com/mail/'", { name= "Gmail" }) end)
 	
 )
