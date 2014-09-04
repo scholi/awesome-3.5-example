@@ -28,6 +28,9 @@ function new(terminal)
 			end
 			self.visible = not self.visible
 		end),
+		awful.button ({}, 2, function()
+			awful.util.spawn (self.mixer)
+		end),
 		awful.button ({}, 3, function()
 			awful.util.spawn ("amixer sset Master toggle")
 			vicious.force ({ vol.widget })
