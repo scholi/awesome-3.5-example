@@ -12,7 +12,7 @@ local naughty = require("naughty")
 local menubar = require("menubar")
 --local blingbling = require("blingbling") -- used only for widgets
 --local vicious = require("vicious") -- used only for widgets
---local bashets = require("bashets") -- used only to display temp. of CPU, but not displayed now
+local bashets = require("bashets") -- used only to display temp. of CPU, but not displayed now
 local revelation = require("revelation")
 
 
@@ -173,6 +173,7 @@ vol = widgets.vol.new(terminal)
 vol:add("Master")
 vol:add("Front")
 
+bashets.start()
 
 -- Create a wibox for each screen and add it
 mywibox = {}
@@ -257,6 +258,7 @@ for s = 1, screen.count() do
     local right_layout = wibox.layout.fixed.horizontal()
     if s == 1 then right_layout:add(wibox.widget.systray()) end
     right_layout:add(cpu.icon)
+    right_layout:add(cpu.temp)
     right_layout:add(cpu.core1)
     right_layout:add(cpu.core2)
     right_layout:add(cpu.container)
@@ -319,7 +321,7 @@ globalkeys = awful.util.table.join(
 
     -- System cmd
     awful.key({ modkey, "Control" }, "Escape", function() awful.util.spawn("systemctl poweroff") end),
-    awful.key({ modkey, "Control" }, "l", function() awful.util.spawn("xscreensaver-command -lock") end),
+    awful.key({ modkey, "Control", "Shift" }, "l", function() awful.util.spawn("xscreensaver-command -lock") end),
     awful.key({ modkey,           }, "e", revelation),
 
     -- Layout manipulation
