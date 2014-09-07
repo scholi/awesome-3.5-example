@@ -161,6 +161,7 @@ menubar.utils.terminal = terminal -- Set the terminal for applications that requ
 
 
 -- WIDGETS
+bashets.stop()
 local widgets = require("widgets")
 cal = widgets.cal.new()
 local fs = widgets.fs.new()
@@ -261,6 +262,7 @@ for s = 1, screen.count() do
     right_layout:add(cpu.temp)
     right_layout:add(cpu.core1)
     right_layout:add(cpu.core2)
+    right_layout:add(cpu.clock)
     right_layout:add(cpu.container)
     right_layout:add(mem.icon)
     right_layout:add(mem.container)

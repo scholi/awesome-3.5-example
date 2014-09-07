@@ -28,6 +28,8 @@ function new(terminal)
   end))
   self.temp  = wibox.widget.textbox()
   bashets.register(cfg_path .. "/Tcpu.sh",{widget=self.temp,separator=" ", update_time=20})
+  self.clock  = wibox.widget.textbox()
+  bashets.register(cfg_path .. "/Fcpu.sh",{widget=self.clock,separator=" ", update_time=20, format='<span color="#ff00ff">$1 MHz</span>'})
 
   self.graph = blingbling.line_graph({ height = 18, width = 100, graph_color=beautiful.graph_color, graph_line_color=beautiful.graph_line_color  })
   vicious.register(self.graph, vicious.widgets.cpu,'$1',2)
